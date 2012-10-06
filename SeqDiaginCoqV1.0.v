@@ -332,8 +332,7 @@ Qed.
 
 (*Definition 2*)
 Definition refine (st : state)(m1 m2 : model) : Prop :=
-  forall t1 : trace, m1 t1 -> 
-  exists t2 : trace, m2 t2 /\ simulate st t1 t2.
+  forall t1, m1 t1 -> exists t2, m2 t2 /\ simulate st t1 t2.
 
 (*Auxiliary lemma for theorem 1 *)
 Lemma trivial_bimp st c : beval st (Bimp c c) = true.
@@ -642,9 +641,9 @@ Definition e5 : event := (!,"m3","l1","l2").
 Definition e6 : event := (?,"m3","l1","l2").
 Definition c1 : cnd := Bvar (Id 1).
 Definition c2 : cnd := Band (Bvar (Id 1)) (Bvar (Id 2)).
-Definition RefineD1 : seqDiag := 
+Definition rd1 : seqDiag := 
   Dopt c1 (Dstrict (De e1) (De e2)).
-Definition RefineD2 : seqDiag := 
+Definition rd2 : seqDiag := 
   Dstrict 
   (Dstrict (Dstrict (De e3) (De e4)) 
     (Dstrict (De e5) (De e6))) 
@@ -676,14 +675,14 @@ Proof.
 Qed.
 Hint Resolve interp_D_3.
 
-Example interp_RefineD1_1 : RefineD1 => (cd c1) :: (ev e1) :: (ev e2) :: nil.
+Example interp_rd1_1 : rd1 => (cd c1) :: (ev e1) :: (ev e2) :: nil.
 Proof.
  econstructor. auto.
 Qed.
-Hint Resolve interp_RefineD1_1.
+Hint Resolve interp_rd1_1.
 
-Example interp_RefineD2_1 : 
-  RefineD2 => (ev e3) :: (ev e4) :: (ev e5) :: (ev e6) :: (cd c2) :: (ev e1) :: (ev e2) ::nil.
+Example interp_rd2_1 : 
+  rd2 => (ev e3) :: (ev e4) :: (ev e5) :: (ev e6) :: (cd c2) :: (ev e1) :: (ev e2) ::nil.
 Proof.
  assert ( (ev e3) :: (ev e4) :: (ev e5) :: (ev e6) :: (cd c2) :: (ev e1) :: (ev e2) :: nil =
          (( (ev e3) :: (ev e4) :: (ev e5) :: (ev e6) :: nil) ++ (cd c2) :: (ev e1) :: (ev e2) :: nil) ).
@@ -692,10 +691,10 @@ Proof.
          (ev e3 :: ev e4 :: nil) ++ (ev e5 :: ev e6 :: nil)).
  auto. rewrite H0. econstructor;auto. econstructor. auto.
 Qed.
-Hint Resolve interp_RefineD2_1.
+Hint Resolve interp_rd2_1.
 
-Example interp_RefineD2_2 : 
-  RefineD2 => (ev e3) :: (ev e4) :: (ev e5) :: (ev e6) ::nil.
+Example interp_rd2_2 : 
+  rd2 => (ev e3) :: (ev e4) :: (ev e5) :: (ev e6) ::nil.
 Proof.
  assert ((ev e3) :: (ev e4) :: (ev e5) :: (ev e6)  :: nil =
          (((ev e3) :: (ev e4) :: (ev e5) :: (ev e6)  :: nil) ++ nil)).
@@ -704,7 +703,7 @@ Proof.
          (ev e3 :: ev e4 :: nil) ++ (ev e5 :: ev e6 :: nil)).
  auto. rewrite H0. econstructor;auto. econstructor.
 Qed.
-Hint Resolve interp_RefineD2_2.
+Hint Resolve interp_rd2_2.
 
 Example c2_imp_c1: forall st:state, beval st (Bimp c2 c1) = true.
 Proof.
@@ -717,8 +716,7 @@ Proof.
 Qed.
 Hint Resolve c2_imp_c1.
 
-Lemma ref_example : forall st : state ,
-   refine st (interp RefineD1) (interp RefineD2).
+Lemma ref_example : forall st, refine st (interp rd1) (interp rd2).
 Proof.
 intro st; unfold refine; intros t1 H1.
 inversion H1; inversion H3.
